@@ -242,10 +242,43 @@ public class FinalExam : Exam
     public FinalExam(TimeSpan timeOfExam, Question[] questions)
         : base(timeOfExam, questions) { }
 
+    #region Question 9 - Final Exam Shows Questions, Answers And Grade
     public override void ShowExam()
     {
-        Console.WriteLine(this);
+        Console.WriteLine($"===== {this} =====");
+        Console.WriteLine();
+
+        int[] chosenAnswers = AskQuestions();
+
+        int grade = 0;
+        int totalMarks = 0;
+
+        Console.WriteLine("----- Exam Review -----");
+        for (int i = 0; i < Questions.Length; i++)
+        {
+            Question question = Questions[i];
+            totalMarks += question.Mark;
+
+            Console.WriteLine($"Q{i + 1}. {question}");
+            foreach (Answer answer in question.AnswerList)
+            {
+                Console.WriteLine($"   {answer}");
+            }
+
+            Console.WriteLine($"   Your answer  : {chosenAnswers[i]}");
+            Console.WriteLine($"   Right answer : {question.RightAnswer}");
+
+            if (question.RightAnswer != null && question.RightAnswer.AnswerId == chosenAnswers[i])
+            {
+                grade += question.Mark;
+            }
+
+            Console.WriteLine();
+        }
+
+        Console.WriteLine($"Grade: {grade} / {totalMarks}");
     }
+    #endregion
 }
 
 public class PracticalExam : Exam
