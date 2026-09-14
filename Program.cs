@@ -40,6 +40,17 @@ public abstract partial class Question : ICloneable, IComparable<Question>
 }
 #endregion
 
+#region Question 5 - Question Answers
+// Second part of the partial Question class: every question carries its list of
+// answers and the one that is correct.
+public abstract partial class Question
+{
+    public Answer[] AnswerList { get; set; } = Array.Empty<Answer>();
+
+    public Answer RightAnswer { get; set; }
+}
+#endregion
+
 #region Question 4 - Answer Class
 public class Answer : ICloneable, IComparable<Answer>
 {
