@@ -306,9 +306,86 @@ public class PracticalExam : Exam
 }
 #endregion
 
+#region Question 10 - Main
 public class Program
 {
     public static void Main(string[] args)
     {
+        Subject subject = new Subject(1, "Object Oriented Programming");
+        Console.WriteLine(subject);
+        Console.WriteLine();
+
+        Console.WriteLine("Choose the exam type: 1) Final   2) Practical");
+        Console.Write("Your choice: ");
+        string examType = Console.ReadLine() == "2" ? "Practical" : "Final";
+        Console.WriteLine();
+
+        Question[] questions = examType == "Practical"
+            ? BuildPracticalQuestions()
+            : BuildFinalQuestions();
+
+        subject.CreateExam(examType, TimeSpan.FromMinutes(30), questions);
+        subject.SubjectExam.ShowExam();
+    }
+
+    // A final exam accepts both True/False and MCQ questions.
+    private static Question[] BuildFinalQuestions()
+    {
+        TrueFalseQuestion inheritance = new TrueFalseQuestion(
+            "Inheritance",
+            "A class in C# can inherit from more than one base class.",
+            5);
+        inheritance.AnswerList = new Answer[]
+        {
+            new Answer(1, "True"),
+            new Answer(2, "False"),
+        };
+        inheritance.RightAnswer = inheritance.AnswerList[1];
+
+        MCQQuestion polymorphism = new MCQQuestion(
+            "Polymorphism",
+            "Which keyword lets a derived class provide its own implementation of a virtual method?",
+            5);
+        polymorphism.AnswerList = new Answer[]
+        {
+            new Answer(1, "new"),
+            new Answer(2, "override"),
+            new Answer(3, "static"),
+            new Answer(4, "sealed"),
+        };
+        polymorphism.RightAnswer = polymorphism.AnswerList[1];
+
+        return new Question[] { inheritance, polymorphism };
+    }
+
+    // A practical exam accepts MCQ questions only.
+    private static Question[] BuildPracticalQuestions()
+    {
+        MCQQuestion collections = new MCQQuestion(
+            "Collections",
+            "Which collection stores unique values only?",
+            10);
+        collections.AnswerList = new Answer[]
+        {
+            new Answer(1, "List<T>"),
+            new Answer(2, "HashSet<T>"),
+            new Answer(3, "Queue<T>"),
+        };
+        collections.RightAnswer = collections.AnswerList[1];
+
+        MCQQuestion delegates = new MCQQuestion(
+            "Delegates",
+            "Which built-in delegate returns no value?",
+            10);
+        delegates.AnswerList = new Answer[]
+        {
+            new Answer(1, "Func<T>"),
+            new Answer(2, "Action<T>"),
+            new Answer(3, "Predicate<T>"),
+        };
+        delegates.RightAnswer = delegates.AnswerList[1];
+
+        return new Question[] { collections, delegates };
     }
 }
+#endregion
