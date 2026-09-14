@@ -40,6 +40,70 @@ public abstract partial class Question : ICloneable, IComparable<Question>
 }
 #endregion
 
+#region Question 6 - Exam Base Class
+public abstract class Exam : ICloneable, IComparable<Exam>
+{
+    public TimeSpan TimeOfExam { get; set; }
+    public int NumberOfQuestions { get; set; }
+    public Question[] Questions { get; set; } = Array.Empty<Question>();
+
+    protected Exam() : this(TimeSpan.FromHours(1), Array.Empty<Question>()) { }
+
+    protected Exam(TimeSpan timeOfExam, Question[] questions)
+    {
+        TimeOfExam = timeOfExam;
+        Questions = questions ?? Array.Empty<Question>();
+        NumberOfQuestions = Questions.Length;
+    }
+
+    // Implemented differently by each exam type (requirements 8 and 9).
+    public abstract void ShowExam();
+
+    // Shared helper: asks every question and returns the answer id chosen for each one.
+    protected int[] AskQuestions()
+    {
+        int[] chosenAnswers = new int[Questions.Length];
+
+        for (int i = 0; i < Questions.Length; i++)
+        {
+            Question question = Questions[i];
+            Console.WriteLine($"Q{i + 1}. {question}");
+
+            foreach (Answer answer in question.AnswerList)
+            {
+                Console.WriteLine($"   {answer}");
+            }
+
+            Console.Write("Your answer: ");
+            int.TryParse(Console.ReadLine(), out chosenAnswers[i]);
+            Console.WriteLine();
+        }
+
+        return chosenAnswers;
+    }
+
+    public virtual object Clone()
+    {
+        return MemberwiseClone();
+    }
+
+    public int CompareTo(Exam other)
+    {
+        if (other == null)
+        {
+            return 1;
+        }
+
+        return NumberOfQuestions.CompareTo(other.NumberOfQuestions);
+    }
+
+    public override string ToString()
+    {
+        return $"{GetType().Name} - Time: {TimeOfExam.TotalMinutes} minutes - Questions: {NumberOfQuestions}";
+    }
+}
+#endregion
+
 #region Question 5 - Question Answers
 // Second part of the partial Question class: every question carries its list of
 // answers and the one that is correct.
@@ -119,12 +183,30 @@ public class MCQQuestion : Question
 #region Question 2 - Exam Types
 // The system supports two exam types. They share the Exam base class added in
 // requirement 6, and each one implements ShowExam in requirements 8 and 9.
-public class FinalExam
+public class FinalExam : Exam
 {
+    public FinalExam() { }
+
+    public FinalExam(TimeSpan timeOfExam, Question[] questions)
+        : base(timeOfExam, questions) { }
+
+    public override void ShowExam()
+    {
+        Console.WriteLine(this);
+    }
 }
 
-public class PracticalExam
+public class PracticalExam : Exam
 {
+    public PracticalExam() { }
+
+    public PracticalExam(TimeSpan timeOfExam, Question[] questions)
+        : base(timeOfExam, questions) { }
+
+    public override void ShowExam()
+    {
+        Console.WriteLine(this);
+    }
 }
 #endregion
 
