@@ -255,10 +255,21 @@ public class PracticalExam : Exam
     public PracticalExam(TimeSpan timeOfExam, Question[] questions)
         : base(timeOfExam, questions) { }
 
+    #region Question 8 - Practical Exam Shows The Right Answer
     public override void ShowExam()
     {
-        Console.WriteLine(this);
+        Console.WriteLine($"===== {this} =====");
+        Console.WriteLine();
+
+        AskQuestions();
+
+        Console.WriteLine("----- Right Answers -----");
+        for (int i = 0; i < Questions.Length; i++)
+        {
+            Console.WriteLine($"Q{i + 1}. {Questions[i].Header} -> {Questions[i].RightAnswer}");
+        }
     }
+    #endregion
 }
 #endregion
 
