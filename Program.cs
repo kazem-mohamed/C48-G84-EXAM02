@@ -40,6 +40,18 @@ public abstract partial class Question : ICloneable, IComparable<Question>
 }
 #endregion
 
+#region Question 2 - Exam Types
+// The system supports two exam types. They share the Exam base class added in
+// requirement 6, and each one implements ShowExam in requirements 8 and 9.
+public class FinalExam
+{
+}
+
+public class PracticalExam
+{
+}
+#endregion
+
 public class Program
 {
     public static void Main(string[] args)
