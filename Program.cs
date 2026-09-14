@@ -40,6 +40,58 @@ public abstract partial class Question : ICloneable, IComparable<Question>
 }
 #endregion
 
+#region Question 7 - Subject Class
+public class Subject : ICloneable, IComparable<Subject>
+{
+    public int SubjectId { get; set; }
+    public string SubjectName { get; set; }
+    public Exam SubjectExam { get; set; }
+
+    public Subject() : this(0, string.Empty) { }
+
+    public Subject(int subjectId, string subjectName)
+    {
+        SubjectId = subjectId;
+        SubjectName = subjectName;
+    }
+
+    // Creates the exam of this subject and keeps it associated with the subject.
+    public Exam CreateExam(string examType, TimeSpan timeOfExam, Question[] questions)
+    {
+        if (string.Equals(examType, "Practical", StringComparison.OrdinalIgnoreCase))
+        {
+            SubjectExam = new PracticalExam(timeOfExam, questions);
+        }
+        else
+        {
+            SubjectExam = new FinalExam(timeOfExam, questions);
+        }
+
+        return SubjectExam;
+    }
+
+    public object Clone()
+    {
+        return new Subject(SubjectId, SubjectName) { SubjectExam = SubjectExam };
+    }
+
+    public int CompareTo(Subject other)
+    {
+        if (other == null)
+        {
+            return 1;
+        }
+
+        return SubjectId.CompareTo(other.SubjectId);
+    }
+
+    public override string ToString()
+    {
+        return $"Subject {SubjectId}: {SubjectName}";
+    }
+}
+#endregion
+
 #region Question 6 - Exam Base Class
 public abstract class Exam : ICloneable, IComparable<Exam>
 {
