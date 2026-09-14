@@ -40,6 +40,35 @@ public abstract partial class Question : ICloneable, IComparable<Question>
 }
 #endregion
 
+#region Question 3 - Question Types
+// Final exams use both types, practical exams use MCQ only.
+public class TrueFalseQuestion : Question
+{
+    public TrueFalseQuestion() : this("True or False Question", string.Empty, 1) { }
+
+    public TrueFalseQuestion(string header, string body, int mark)
+        : base(header, body, mark) { }
+
+    public override string ToString()
+    {
+        return $"[True or False] {base.ToString()}";
+    }
+}
+
+public class MCQQuestion : Question
+{
+    public MCQQuestion() : this("MCQ Question", string.Empty, 1) { }
+
+    public MCQQuestion(string header, string body, int mark)
+        : base(header, body, mark) { }
+
+    public override string ToString()
+    {
+        return $"[MCQ] {base.ToString()}";
+    }
+}
+#endregion
+
 #region Question 2 - Exam Types
 // The system supports two exam types. They share the Exam base class added in
 // requirement 6, and each one implements ShowExam in requirements 8 and 9.
