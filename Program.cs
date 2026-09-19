@@ -361,11 +361,28 @@ public class PracticalExam : Exam
         }
     }
 
+    #region Question 8 - Practical Exam Shows The Right Answer
     public override void ShowExam()
     {
         Console.WriteLine("Practical Exam");
-        AskQuestions();
+
+        int[] chosenAnswers = AskQuestions();
+
+        Console.WriteLine("Practical Exam Results:");
+
+        for (int i = 0; i < Questions.Length; i++)
+        {
+            Question question = Questions[i];
+
+            Console.WriteLine($"Question {i + 1}: {question.Body}");
+            Console.WriteLine($"Your Answer => {question.TextOfAnswer(chosenAnswers[i])}");
+            Console.WriteLine($"Correct Answer => {question.RightAnswer.AnswerText}");
+            Console.WriteLine();
+        }
+
+        ShowGrade(chosenAnswers);
     }
+    #endregion
 }
 #endregion
 
