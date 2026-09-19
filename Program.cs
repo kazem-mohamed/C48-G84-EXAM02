@@ -337,11 +337,27 @@ public class FinalExam : Exam
     public FinalExam(TimeSpan timeOfExam, Question[] questions)
         : base(timeOfExam, questions) { }
 
+    #region Question 9 - Final Exam Shows Questions, Answers And Grade
     public override void ShowExam()
     {
         Console.WriteLine("Final Exam");
-        AskQuestions();
+
+        int[] chosenAnswers = AskQuestions();
+
+        Console.WriteLine("Final Exam Results:");
+
+        for (int i = 0; i < Questions.Length; i++)
+        {
+            Question question = Questions[i];
+
+            Console.WriteLine($"Question {i + 1}: {question.Body}");
+            Console.WriteLine($"Your Answer => {question.TextOfAnswer(chosenAnswers[i])}");
+            Console.WriteLine();
+        }
+
+        ShowGrade(chosenAnswers);
     }
+    #endregion
 }
 
 public class PracticalExam : Exam
