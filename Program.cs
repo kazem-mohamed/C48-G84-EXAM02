@@ -33,6 +33,24 @@ public abstract partial class Question : IComparable<Question>
 }
 #endregion
 
+#region Question 3 - Question Types
+public class TrueFalseQuestion : Question
+{
+    public TrueFalseQuestion() : this(string.Empty, 1) { }
+
+    public TrueFalseQuestion(string body, int mark)
+        : base("True or False Question", body, mark) { }
+}
+
+public class MCQQuestion : Question
+{
+    public MCQQuestion() : this(string.Empty, 1) { }
+
+    public MCQQuestion(string body, int mark)
+        : base("MCQ Question", body, mark) { }
+}
+#endregion
+
 #region Question 2 - Exam Types
 public enum ExamType
 {
