@@ -33,6 +33,22 @@ public abstract partial class Question : IComparable<Question>
 }
 #endregion
 
+#region Question 2 - Exam Types
+public enum ExamType
+{
+    Practical = 1,
+    Final = 2,
+}
+
+public class FinalExam
+{
+}
+
+public class PracticalExam
+{
+}
+#endregion
+
 public class Program
 {
     public static void Main(string[] args)
