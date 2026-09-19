@@ -42,6 +42,34 @@ public static class ConsoleInput
             Console.WriteLine($"Please enter a number between {min} and {max}.");
         }
     }
+
+    public static bool ReadYesNo(string prompt)
+    {
+        while (true)
+        {
+            Console.WriteLine(prompt);
+            string input = Console.ReadLine();
+
+            if (input == null)
+            {
+                return false;
+            }
+
+            input = input.Trim();
+
+            if (input.Equals("Y", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (input.Equals("N", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            Console.WriteLine("Please enter Y or N.");
+        }
+    }
 }
 #endregion
 
@@ -95,6 +123,181 @@ public abstract partial class Question : ICloneable, IComparable<Question>
     public override string ToString()
     {
         return $"{Header}:   Mark {Mark}";
+    }
+}
+#endregion
+
+#region Question 2 - Exam Types
+public enum ExamType
+{
+    Practical = 1,
+    Final = 2,
+}
+
+public class PracticalExam : Exam
+{
+    public PracticalExam() { }
+
+    public PracticalExam(TimeSpan timeOfExam, Question[] questions)
+        : base(timeOfExam, questions)
+    {
+        foreach (Question question in Questions)
+        {
+            if (question is not MCQQuestion)
+            {
+                throw new ArgumentException(
+                    "A practical exam accepts MCQ questions only.", nameof(questions));
+            }
+        }
+    }
+
+    #region Question 8 - Practical Exam Shows The Right Answer
+    public override void ShowExam()
+    {
+        Console.WriteLine("Practical Exam");
+
+        int[] chosenAnswers = AskQuestions();
+
+        Console.WriteLine("Practical Exam Results:");
+
+        for (int i = 0; i < Questions.Length; i++)
+        {
+            Question question = Questions[i];
+
+            Console.WriteLine($"Question {i + 1}: {question.Body}");
+            Console.WriteLine($"Your Answer => {question.TextOfAnswer(chosenAnswers[i])}");
+            Console.WriteLine($"Correct Answer => {question.RightAnswer.AnswerText}");
+            Console.WriteLine();
+        }
+
+        ShowGrade(chosenAnswers);
+    }
+    #endregion
+}
+
+public class FinalExam : Exam
+{
+    public FinalExam() { }
+
+    public FinalExam(TimeSpan timeOfExam, Question[] questions)
+        : base(timeOfExam, questions) { }
+
+    #region Question 9 - Final Exam Shows Questions, Answers And Grade
+    public override void ShowExam()
+    {
+        Console.WriteLine("Final Exam");
+
+        int[] chosenAnswers = AskQuestions();
+
+        Console.WriteLine("Final Exam Results:");
+
+        for (int i = 0; i < Questions.Length; i++)
+        {
+            Question question = Questions[i];
+
+            Console.WriteLine($"Question {i + 1}: {question.Body}");
+            Console.WriteLine($"Your Answer => {question.TextOfAnswer(chosenAnswers[i])}");
+            Console.WriteLine($"Correct Answer => {question.RightAnswer.AnswerText}");
+            Console.WriteLine();
+        }
+
+        ShowGrade(chosenAnswers);
+    }
+    #endregion
+}
+#endregion
+
+#region Question 3 - Question Types
+public class TrueFalseQuestion : Question
+{
+    public TrueFalseQuestion() : this(string.Empty, 1, true) { }
+
+    public TrueFalseQuestion(string body, int mark, bool rightAnswer)
+        : base("True | False Question", body, mark)
+    {
+        SetAnswers(rightAnswer ? 1 : 2, "True", "False");
+    }
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}{Environment.NewLine}True/False Question: {Body})";
+    }
+}
+
+public class MCQQuestion : Question
+{
+    public MCQQuestion() : this(string.Empty, 1) { }
+
+    public MCQQuestion(string body, int mark)
+        : base("MCQ Question", body, mark) { }
+}
+#endregion
+
+#region Question 4 - Answer Class
+public class Answer : ICloneable, IComparable<Answer>
+{
+    public int AnswerId { get; set; }
+    public string AnswerText { get; set; }
+
+    public Answer() : this(0, string.Empty) { }
+
+    public Answer(int answerId, string answerText)
+    {
+        AnswerId = answerId;
+        AnswerText = answerText;
+    }
+
+    public object Clone()
+    {
+        return new Answer(AnswerId, AnswerText);
+    }
+
+    public int CompareTo(Answer other)
+    {
+        if (other == null)
+        {
+            return 1;
+        }
+
+        return AnswerId.CompareTo(other.AnswerId);
+    }
+
+    public override string ToString()
+    {
+        return $"{AnswerId}- {AnswerText}";
+    }
+}
+#endregion
+
+#region Question 5 - Question Answers
+public abstract partial class Question
+{
+    public Answer[] AnswerList { get; set; } = Array.Empty<Answer>();
+
+    public Answer RightAnswer { get; set; }
+
+    // Answers are numbered from 1, so rightAnswerId is the number the student types.
+    public void SetAnswers(int rightAnswerId, params string[] answerTexts)
+    {
+        AnswerList = new Answer[answerTexts.Length];
+
+        for (int i = 0; i < answerTexts.Length; i++)
+        {
+            AnswerList[i] = new Answer(i + 1, answerTexts[i]);
+        }
+
+        RightAnswer = Array.Find(AnswerList, answer => answer.AnswerId == rightAnswerId);
+    }
+
+    public bool IsAnsweredCorrectly(int answerId)
+    {
+        return RightAnswer != null && RightAnswer.AnswerId == answerId;
+    }
+
+    public string TextOfAnswer(int answerId)
+    {
+        Answer answer = Array.Find(AnswerList, item => item.AnswerId == answerId);
+        return answer == null ? "No answer" : answer.AnswerText;
     }
 }
 #endregion
@@ -233,175 +436,6 @@ public abstract class Exam : ICloneable, IComparable<Exam>
 }
 #endregion
 
-#region Question 5 - Question Answers
-public abstract partial class Question
-{
-    public Answer[] AnswerList { get; set; } = Array.Empty<Answer>();
-
-    public Answer RightAnswer { get; set; }
-
-    // Answers are numbered from 1, so rightAnswerId is the number the student types.
-    public void SetAnswers(int rightAnswerId, params string[] answerTexts)
-    {
-        AnswerList = new Answer[answerTexts.Length];
-
-        for (int i = 0; i < answerTexts.Length; i++)
-        {
-            AnswerList[i] = new Answer(i + 1, answerTexts[i]);
-        }
-
-        RightAnswer = Array.Find(AnswerList, answer => answer.AnswerId == rightAnswerId);
-    }
-
-    public bool IsAnsweredCorrectly(int answerId)
-    {
-        return RightAnswer != null && RightAnswer.AnswerId == answerId;
-    }
-
-    public string TextOfAnswer(int answerId)
-    {
-        Answer answer = Array.Find(AnswerList, item => item.AnswerId == answerId);
-        return answer == null ? "No answer" : answer.AnswerText;
-    }
-}
-#endregion
-
-#region Question 4 - Answer Class
-public class Answer : ICloneable, IComparable<Answer>
-{
-    public int AnswerId { get; set; }
-    public string AnswerText { get; set; }
-
-    public Answer() : this(0, string.Empty) { }
-
-    public Answer(int answerId, string answerText)
-    {
-        AnswerId = answerId;
-        AnswerText = answerText;
-    }
-
-    public object Clone()
-    {
-        return new Answer(AnswerId, AnswerText);
-    }
-
-    public int CompareTo(Answer other)
-    {
-        if (other == null)
-        {
-            return 1;
-        }
-
-        return AnswerId.CompareTo(other.AnswerId);
-    }
-
-    public override string ToString()
-    {
-        return $"{AnswerId}- {AnswerText}";
-    }
-}
-#endregion
-
-#region Question 3 - Question Types
-public class TrueFalseQuestion : Question
-{
-    public TrueFalseQuestion() : this(string.Empty, 1, true) { }
-
-    public TrueFalseQuestion(string body, int mark, bool rightAnswer)
-        : base("True or False Question", body, mark)
-    {
-        SetAnswers(rightAnswer ? 1 : 2, "True", "False");
-    }
-}
-
-public class MCQQuestion : Question
-{
-    public MCQQuestion() : this(string.Empty, 1) { }
-
-    public MCQQuestion(string body, int mark)
-        : base("MCQ Question", body, mark) { }
-}
-#endregion
-
-#region Question 2 - Exam Types
-public enum ExamType
-{
-    Practical = 1,
-    Final = 2,
-}
-
-public class FinalExam : Exam
-{
-    public FinalExam() { }
-
-    public FinalExam(TimeSpan timeOfExam, Question[] questions)
-        : base(timeOfExam, questions) { }
-
-    #region Question 9 - Final Exam Shows Questions, Answers And Grade
-    public override void ShowExam()
-    {
-        Console.WriteLine("Final Exam");
-
-        int[] chosenAnswers = AskQuestions();
-
-        Console.WriteLine("Final Exam Results:");
-
-        for (int i = 0; i < Questions.Length; i++)
-        {
-            Question question = Questions[i];
-
-            Console.WriteLine($"Question {i + 1}: {question.Body}");
-            Console.WriteLine($"Your Answer => {question.TextOfAnswer(chosenAnswers[i])}");
-            Console.WriteLine();
-        }
-
-        ShowGrade(chosenAnswers);
-    }
-    #endregion
-}
-
-public class PracticalExam : Exam
-{
-    public PracticalExam() { }
-
-    public PracticalExam(TimeSpan timeOfExam, Question[] questions)
-        : base(timeOfExam, questions)
-    {
-        foreach (Question question in Questions)
-        {
-            if (question is not MCQQuestion)
-            {
-                throw new ArgumentException(
-                    "A practical exam accepts MCQ questions only.", nameof(questions));
-            }
-        }
-    }
-
-    #region Question 8 - Practical Exam Shows The Right Answer
-    public override void ShowExam()
-    {
-        Console.WriteLine("Practical Exam");
-
-        int[] chosenAnswers = AskQuestions();
-
-        Console.WriteLine("Practical Exam Results:");
-
-        for (int i = 0; i < Questions.Length; i++)
-        {
-            Question question = Questions[i];
-
-            Console.WriteLine($"Question {i + 1}: {question.Body}");
-            Console.WriteLine($"Your Answer => {question.TextOfAnswer(chosenAnswers[i])}");
-            Console.WriteLine($"Correct Answer => {question.RightAnswer.AnswerText}");
-            Console.WriteLine();
-        }
-
-        ShowGrade(chosenAnswers);
-    }
-    #endregion
-}
-#endregion
-
 #region Question 7 - Subject Class
 public class Subject : ICloneable, IComparable<Subject>
 {
@@ -435,7 +469,7 @@ public class Subject : ICloneable, IComparable<Subject>
 
         for (int i = 0; i < numberOfQuestions; i++)
         {
-            questions[i] = ReadQuestion(examType);
+            questions[i] = ReadQuestion(examType, i + 1);
         }
 
         SubjectExam = examType == ExamType.Practical
@@ -447,11 +481,13 @@ public class Subject : ICloneable, IComparable<Subject>
     }
 
     // Practical exams accept MCQ only, final exams accept both question types.
-    private static Question ReadQuestion(ExamType examType)
+    private static Question ReadQuestion(ExamType examType, int questionNumber)
     {
+        Console.WriteLine($"Enter details for question {questionNumber}:");
+
         bool isTrueFalse = examType == ExamType.Final &&
             ConsoleInput.ReadNumber(
-                "Enter the type of question (1 for True or False, 2 for MCQ):", 1, 2) == 1;
+                "Choose question type: 1 for MCQ, 2 for True/False:", 1, 2) == 2;
 
         string body = ConsoleInput.ReadText("Please enter the question body:");
         int mark = ConsoleInput.ReadNumber("Please enter the question mark:", 1, 100);
@@ -512,9 +548,18 @@ public class Subject : ICloneable, IComparable<Subject>
 }
 #endregion
 
+#region Question 10 - Main
 public class Program
 {
     public static void Main(string[] args)
     {
+        Subject subject = new Subject(1, "Object Oriented Programming");
+        Exam exam = subject.CreateExam();
+
+        if (ConsoleInput.ReadYesNo("Do You Want To Start Exam (Y | N)"))
+        {
+            exam.ShowExam();
+        }
     }
 }
+#endregion
