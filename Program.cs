@@ -1,3 +1,50 @@
+#region Console Input Helpers
+public static class ConsoleInput
+{
+    public static string ReadText(string prompt)
+    {
+        while (true)
+        {
+            Console.WriteLine(prompt);
+            string input = Console.ReadLine();
+
+            if (input == null)
+            {
+                return string.Empty;
+            }
+
+            if (input.Trim().Length > 0)
+            {
+                return input.Trim();
+            }
+
+            Console.WriteLine("Value cannot be empty.");
+        }
+    }
+
+    public static int ReadNumber(string prompt, int min, int max)
+    {
+        while (true)
+        {
+            Console.WriteLine(prompt);
+            string input = Console.ReadLine();
+
+            if (input == null)
+            {
+                return min;
+            }
+
+            if (int.TryParse(input, out int value) && value >= min && value <= max)
+            {
+                return value;
+            }
+
+            Console.WriteLine($"Please enter a number between {min} and {max}.");
+        }
+    }
+}
+#endregion
+
 #region Question 1 - Question Class
 public abstract partial class Question : ICloneable, IComparable<Question>
 {
@@ -57,6 +104,9 @@ public abstract class Exam : ICloneable, IComparable<Exam>
 {
     public TimeSpan TimeOfExam { get; set; }
     public Question[] Questions { get; set; } = Array.Empty<Question>();
+
+    // Set by Subject.CreateExam.
+    public Subject Subject { get; set; }
 
     public int NumberOfQuestions => Questions.Length;
 
@@ -315,6 +365,116 @@ public class PracticalExam : Exam
     {
         Console.WriteLine("Practical Exam");
         AskQuestions();
+    }
+}
+#endregion
+
+#region Question 7 - Subject Class
+public class Subject : ICloneable, IComparable<Subject>
+{
+    private const int ChoicesPerMCQ = 4;
+
+    public int SubjectId { get; set; }
+    public string SubjectName { get; set; }
+    public Exam SubjectExam { get; set; }
+
+    public Subject() : this(0, string.Empty) { }
+
+    public Subject(int subjectId, string subjectName)
+    {
+        SubjectId = subjectId;
+        SubjectName = subjectName;
+    }
+
+    // Asks for the exam data, then builds and stores it.
+    public Exam CreateExam()
+    {
+        ExamType examType = (ExamType)ConsoleInput.ReadNumber(
+            "Enter the type of exam (1 for Practical, 2 for Final):", 1, 2);
+
+        int minutes = ConsoleInput.ReadNumber(
+            "Please enter the time for the exam (30 to 180 minutes):", 30, 180);
+
+        int numberOfQuestions = ConsoleInput.ReadNumber(
+            "Please enter the number of questions:", 1, 50);
+
+        Question[] questions = new Question[numberOfQuestions];
+
+        for (int i = 0; i < numberOfQuestions; i++)
+        {
+            questions[i] = ReadQuestion(examType);
+        }
+
+        SubjectExam = examType == ExamType.Practical
+            ? new PracticalExam(TimeSpan.FromMinutes(minutes), questions)
+            : new FinalExam(TimeSpan.FromMinutes(minutes), questions);
+
+        SubjectExam.Subject = this;
+        return SubjectExam;
+    }
+
+    // Practical exams accept MCQ only, final exams accept both question types.
+    private static Question ReadQuestion(ExamType examType)
+    {
+        bool isTrueFalse = examType == ExamType.Final &&
+            ConsoleInput.ReadNumber(
+                "Enter the type of question (1 for True or False, 2 for MCQ):", 1, 2) == 1;
+
+        string body = ConsoleInput.ReadText("Please enter the question body:");
+        int mark = ConsoleInput.ReadNumber("Please enter the question mark:", 1, 100);
+
+        if (isTrueFalse)
+        {
+            int trueFalseAnswer = ConsoleInput.ReadNumber(
+                "Please enter the ID of the correct answer (1 for True, 2 for False):", 1, 2);
+
+            return new TrueFalseQuestion(body, mark, trueFalseAnswer == 1);
+        }
+
+        Console.WriteLine("Choices of Question:");
+        string[] choices = new string[ChoicesPerMCQ];
+
+        for (int i = 0; i < choices.Length; i++)
+        {
+            choices[i] = ConsoleInput.ReadText($"Please enter choice number {i + 1}:");
+        }
+
+        int correctAnswerId = ConsoleInput.ReadNumber(
+            $"Please enter the ID of the correct answer (1 to {ChoicesPerMCQ}):", 1, ChoicesPerMCQ);
+
+        MCQQuestion question = new MCQQuestion(body, mark);
+        question.SetAnswers(correctAnswerId, choices);
+
+        return question;
+    }
+
+    public object Clone()
+    {
+        Subject copy = new Subject(SubjectId, SubjectName);
+
+        if (SubjectExam != null)
+        {
+            // The cloned exam points back at the cloned subject, not the original one.
+            copy.SubjectExam = (Exam)SubjectExam.Clone();
+            copy.SubjectExam.Subject = copy;
+        }
+
+        return copy;
+    }
+
+    public int CompareTo(Subject other)
+    {
+        if (other == null)
+        {
+            return 1;
+        }
+
+        return SubjectId.CompareTo(other.SubjectId);
+    }
+
+    public override string ToString()
+    {
+        return $"Subject {SubjectId}: {SubjectName}";
     }
 }
 #endregion
